@@ -1,5 +1,5 @@
 streamlit
-pandas as
+pandas
 dhlab
 requests
 openpyxl
