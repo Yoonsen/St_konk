@@ -15,8 +15,9 @@ st.set_page_config(page_title="Konkordanser", page_icon=None, layout="wide", ini
 st.title("Konkordanser")
 st.write("Lagre konkordanser med årstall")
 
-def to_excel(df):
+def to_excel(df, search):
     """Make an excel object out of a dataframe as an IO-object"""
+    df['nb'] = df.urn.apply(lambda x: f"https://nb.no/items/{x}?searchText={search}")
     output = BytesIO()
     writer = pd.ExcelWriter(output, engine='openpyxl')
     df.to_excel(writer, index=False, sheet_name='Sheet1')
@@ -91,6 +92,9 @@ with cold:
         corpus = dh.Corpus(doctype='digibok',limit=0)
         corpus.extend_from_identifiers(list(dataframe.urn))
         corpus = corpus.frame
+    else:
+        corpus = dh.Corpus(doctype="digibok", limit = 0).frame
+        
 
 
 with col1:
@@ -114,11 +118,11 @@ show_concs(corpus, concs, konk_ord,limit)
 
 st.write("---")  
 
-excel_fil = to_excel(concs.merge(corpus, left_on='urn', right_on='urn')[["urn","year","timestamp", "conc"]])
+
 filnavn = st.text_input("Filnavn for excelfil", "konkordanser.xlsx")
 st.download_button(
     label = f"Last ned alle {len(concs)} konkordansene ",
-    data = excel_fil,
+    data = to_excel(concs.merge(corpus, left_on='urn', right_on='urn')[["urn","year","timestamp", "conc"]], konk_ord),
     file_name = filnavn,
     mime='application/msexcel',
 )
